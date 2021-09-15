@@ -1,0 +1,187 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <div class="row">
+        <div class="col-6">
+            Selected Category: <label id="selected-category"></label>
+            <select onchange="onCategorySelect(this)" id="root-category-select" class="form-control">
+                <option disabled selected>Select a category</option>
+            </select>
+            <div id="sub-category-root">
+
+            </div>
+        </div>
+        <div class="col-2">
+            <button onclick="onApplyFilter()" class="btn btn-primary">Filter</button>
+        </div>
+    </div>
+    <div id="ads-list-area">
+        
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="/css/home.css"/>
+}
+@section Scripts {
+    <script>
+    
+    const categories = @Html.Raw(ViewBag.Categories)
+    var selectedCategoryId;
+    
+    for (let cat of categories) {
+        $('#root-category-select').append($(`<option value="${cat.id}">${cat.name}</option>`))
+    }
+    
+    
+    function onCategorySelect(s, parentId) {
+        let selectedId = $(s).val(),
+            selectedCategory = findInCategories(selectedId, categories)
+            
+         selectedCategoryId = selectedId;
+        if (parentId == undefined) {
+            $('#sub-category-root').empty()
+            $('#selected-category').text(selectedCategory.name)
+        } else {
+            $(`#sub-category-${selectedId}`).empty()
+            $('#selected-category').text(categoryPath(selectedId, categories))
+        }
+        $.get(`/category?parentId=${selectedId}`).done(subCategories => {
+            
+            if (subCategories.length > 0) {
+                let cat = findInCategories(selectedId, categories)
+                cat.subCategories = subCategories
+                
+                let container
+                if (parentId == null) {
+                   container = $('#sub-category-root')
+                } else {
+                    container = $(`#sub-category-${parentId}`)
+                }
+                
+                let formGroup = initSubCategoryFormGroup(cat)
+                
+                container.append(formGroup)
+            }
+        })
+    }
+    
+    function initSubCategoryFormGroup(cat) {
+        
+        let formGroup = $(`<div class="form-group"></div>`)
+        let selectEl = $(`<select onchange="onCategorySelect(this, ${cat.id})" id="category-select-${cat.id}" class="form-control"></select>`)
+        selectEl.append($(`<option disabled selected>Select sucategory of ${cat.name}</option>`))
+        for (let subCat of cat.subCategories) {
+            selectEl.append($(`<option value="${subCat.id}">${subCat.name}</option>`))
+        }
+        formGroup.append(selectEl)
+        formGroup.append($(`<div id="sub-category-${cat.id}"></div>`))
+        
+        return formGroup
+    }
+    
+    function findInCategories(id, categories) {
+        for (let cat of categories) {
+            if (cat.id == id) {
+                return cat
+            }
+            
+            if (cat.subCategories) {
+                
+                let searchCat = findInCategories(id, cat.subCategories)
+                if (searchCat) {
+                    return searchCat
+                }
+            }
+        }
+    }
+    function categoryPath(id, categories, path = '') {
+        for (let cat of categories) {
+            if (cat.id == id) {
+                return `${path}${cat.name}`
+            }
+            
+            if (cat.subCategories) {
+                let searchPath = categoryPath(id, cat.subCategories, path)
+                if (searchPath) {
+                    return `${cat.name}>${searchPath}`
+                }
+            }
+        }
+    }
+    
+    
+    
+    </script>
+    <script>
+    let waiting = false,
+        isLastAdsReceived = false,
+        categoryId = undefined,
+        offset = 0,
+        lastOffset = -1;
+    
+    const PageAdsCount = Math.ceil($(window).height() / 80)
+    function handleScroll() {
+        
+        if (!isLastAdsReceived && !waiting) {
+            let window_top = $(window).scrollTop();
+            let document_h = $(document).height();
+            let window_h = $(window).height();
+    
+            var size = 0.76;
+    
+            var x = document_h - window_h;
+    
+            if ((window_top / x) > size) {
+                if (offset != lastOffset) {
+                    lastOffset = offset;
+    
+                    loadData()
+                }
+            }
+        }
+    }
+    $(window).scroll(handleScroll)
+    
+    function onApplyFilter() {
+        offset = 0;
+        lastOffset = -1;
+        categoryId = selectedCategoryId
+        $('#ads-list-area').empty()
+        loadData()
+    }
+    
+    function loadData() {
+        let _url = `/advertise/search?offset=${offset}&count=${PageAdsCount}`
+        if (categoryId != undefined) {
+            _url = `${_url}&categoryId=${categoryId}`
+        }
+        $.get(_url).done(advertises => {
+            lastOffset = offset;
+            ++offset;
+            if (advertises.length == 0) {
+                isLastAdsReceived = true
+            }
+            for (let ads of advertises) {
+                let adsEl = $(`<div class="ads"></div>`)
+                adsEl.append($(`<div class="id">${ads.id}</div>`))
+                adsEl.append($(`<div class="title">${ads.title}</div>`))
+                adsEl.append($(`<div class="text">${ads.text}</div>`))
+                adsEl.append($(`<div class="contact">${ads.contactInfo}</div>`))
+                adsEl.append($(`<div class="category-name">${ads.categoryName}</div>`))
+                if (ads.imageUrls) {
+                    let imgWrapper = $('<div class="ads-images"></div>')
+                    for (let url of ads.imageUrls) {
+                        imgWrapper.append($(`<img src="/file?url=${url}" />`))
+                    }
+                    adsEl.append(imgWrapper)
+                }
+                $('#ads-list-area').append(adsEl)                
+            }
+        })
+    }
+    loadData()
+    </script>
+}

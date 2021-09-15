@@ -1,0 +1,82 @@
+﻿@model HiliTechChallenge.Core.Models.AdminPageViewModel
+
+<div class="add-user-area col-6">
+    <form method="post" action="/user">
+        <span>Add User</span>
+        <div>
+            <input type="text" asp-for="Email" class="form-control" placeholder="Enter user email"/>
+        </div>
+        <div>
+            <input type="password" asp-for="Password" class="form-control" placeholder="****"/>
+        </div>
+        <button type="submit" class="btn btn-primary">Add User</button>
+    </form>
+</div>
+
+<div class="manage-category-area">
+    Categories
+    <div class="category-box">
+        <div class="category-add">
+            <div class="category-name-field">
+                <input type="text" id="root-category-name" class="form-control" placeholder="Name"/>
+            </div>
+            <button onclick="addCategory()" class="category-add-submit btn btn-primary">Add</button>
+        </div>
+        <div class="sub-categories">
+            @foreach (var subCat in Model.CategoryBoxViewModel.SubCategories)
+            {
+                <div id="root-sub-categories" class="sub-category">
+                    <button onclick="onSubCategoryClick(event, @subCat.Id)" class="sub-category-btn btn btn-info">@subCat.Name</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <link rel="stylesheet" href="/css/category.css"/>
+    <script>
+    function addCategory(parentId) {
+        let apiData = {
+            
+        }
+        if (parentId == undefined) {
+            apiData.name = $('#root-category-name').val()
+        } else {
+            apiData.parentId = parentId
+            apiData.name = $(`#category-${parentId}`).val()
+        }
+        
+        $.post('/category', apiData).done(data => {
+            location.reload()
+        })
+    }
+    function onSubCategoryClick(e, catId) {
+        
+        let container = $(e.target).parent()
+        
+        let box = $(`<div class="category-box"></div>`)
+        let categoryAdd = $(`<div class="category-add"></div>`)
+        let categoryAddNameField = $(`<div class="category-name-field"></div>`)
+        let categoryAddNameFieldInput = $(`<input type="text" id="category-${catId}" placeholder="Name"/>`)
+        categoryAddNameField.append(categoryAddNameFieldInput)
+        categoryAdd.append(categoryAddNameField)
+        let categoryAddBtn = $(`<button onclick="addCategory(${catId})" class="category-add-submit btn btn-primary">Add</button>`)
+        categoryAdd.append(categoryAddBtn)
+        box.append(categoryAdd)
+        
+        let subCats = $(`<div class="sub-categories"></div>`)
+        $.get(`/category?parentId=${catId}`).done(data => {
+            for (let cat of data) {
+                let subCat = $(`<div id="sub-category-${cat.id}" class="sub-category"></div>`)
+                subCat.append($(`<button onclick="onSubCategoryClick(event, ${cat.id})" class="sub-category-btn btn btn-info">${cat.name}</button>`))
+                subCats.append(subCat)
+            }
+            box.append(subCats)
+            container.append(box)
+        })
+        
+    }
+    </script>
+}

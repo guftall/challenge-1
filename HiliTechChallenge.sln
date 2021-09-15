@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiliTechChallenge", "HiliTechChallenge\HiliTechChallenge.csproj", "{7D709738-EABD-48F0-AF21-DECEA819E986}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Auth", "Auth\Auth.csproj", "{0A46B572-6DC1-48CA-A7C3-87F7E9040AEB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7D709738-EABD-48F0-AF21-DECEA819E986}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D709738-EABD-48F0-AF21-DECEA819E986}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D709738-EABD-48F0-AF21-DECEA819E986}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D709738-EABD-48F0-AF21-DECEA819E986}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A46B572-6DC1-48CA-A7C3-87F7E9040AEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A46B572-6DC1-48CA-A7C3-87F7E9040AEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A46B572-6DC1-48CA-A7C3-87F7E9040AEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A46B572-6DC1-48CA-A7C3-87F7E9040AEB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

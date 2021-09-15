@@ -1,0 +1,23 @@
+﻿@model HiliTechChallenge.Core.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="">
+    <form method="post">
+        
+        <div class="mt-2">
+            <input type="text" asp-for="Email" placeholder="abc@google.com"/>
+        </div>
+        <div class="mt-2">
+            <input type="password" asp-for="Password" placeholder="****"/>
+        </div>
+        <div>
+            <label for="as-admin">Login as admin?</label>
+            <input id="as-admin" type="checkbox" asp-for="AsAdmin"/>
+        </div>
+        <div>
+            <button class="login-submit-btn" type="submit">Login</button>
+        </div>
+    </form>
+</div>

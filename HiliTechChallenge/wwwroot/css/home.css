@@ -1,0 +1,17 @@
+﻿.ads {
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    min-height: 80px;
+    margin-top: 8px;
+    border: 1px solid black;
+    border-radius: 8px;
+}
+.ads-images {
+    display: flex;
+    flex-direction: column;
+}
+.ads-images img {
+    padding: 2px;
+    max-width: 80px;
+}

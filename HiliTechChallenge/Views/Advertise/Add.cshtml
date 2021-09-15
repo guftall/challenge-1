@@ -1,0 +1,194 @@
+﻿@using System.Text.Json
+@model HiliTechChallenge.Core.Models.Views.AdvertiseAddModel
+
+<div class="ads-add-area">
+    <form method="post" enctype="multipart/form-data">
+        <div class="row">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" asp-for="Title" class="form-control" id="title" placeholder="Title"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label for="text">Text</label>
+                <textarea asp-for="Text" class="form-control"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label for="contact">Contact info</label>
+                <input type="text" asp-for="Contact" class="form-control" id="contact"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                Selected Category: <label id="selected-category"></label>
+                <select onchange="onCategorySelect(this)" id="root-category-select" class="form-control">
+                    <option disabled selected>Select a category</option>
+                </select>
+                <div id="sub-category-root">
+
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div id="ads-images">
+                @if (ViewBag.Action == "edit" && ViewBag.Images != null)
+                {
+                    foreach (var imageUrl in ViewBag.Images)
+                    {
+                        <div class="d-flex">
+                            <input type="text" name="imageUrls" value="@imageUrl" />
+                            <button onclick="onRemoveImageUrl(this)" type="button">Remove</button>
+                        </div>
+                    }
+                }
+                <div class="row">
+                    <input type="file" accept="image/*" name="images"/>
+                </div>
+
+            </div>
+            <div class="col-12 pt-2">
+                <button type="button" onclick="onAddImageClick()">Add Image</button>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <button type="submit">Save</button>
+        </div>
+        <input type="hidden" name="categoryId" id="category-id"/>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        let fileCount = 1;
+        function onAddImageClick() {
+               $('#ads-images').append($(`<div class="row"><input type="file" accept="image/*" name="images" /></div>`))
+               ++fileCount
+        }
+        function onFileSelected(e) {
+            console.log(e)
+        }
+        
+        function onRemoveImageUrl(target) {
+            $(target).parent().remove()
+        }
+        
+    </script>
+    <script>
+    
+    const categories = @Html.Raw(ViewBag.Categories)
+    const action = "@ViewBag.Action"
+    
+    for (let cat of categories) {
+        $('#root-category-select').append($(`<option value="${cat.id}">${cat.name}</option>`))
+    }
+
+    if (action == 'edit') {
+        let categoryId = "@ViewBag.Category?.Id"
+        $('#category-id').val(categoryId)
+        for (let cat of categories) {
+            if (cat.subCategories) {
+                $('#sub-category-root').append(subCategoryFormGroupPath(cat))
+                $("#root-category-select option").each(function(){
+                  if ($(this).val() == cat.id)
+                    $(this).attr("selected","selected");
+                });
+            }
+        }
+    }
+    
+    function subCategoryFormGroupPath(cat) {
+        let formGroup = initSubCategoryFormGroup(cat)
+        for (let subCat of cat.subCategories) {
+            formGroup.find(`#category-select-${cat.id} option`).each(function(){
+              if ($(this).val() == subCat.id) {
+                $(this).attr("selected","selected");
+              }
+            });  
+            if (subCat.subCategories) {
+                formGroup.find(`#sub-category-${cat.id}`).append(subCategoryFormGroupPath(subCat))   
+            }
+        }
+        return formGroup
+    }
+    
+    var selectedCategory;
+    function onCategorySelect(s, parentId) {
+        let selectedId = $(s).val(),
+            selectedCategory = findInCategories(selectedId, categories)
+            
+         $('#category-id').val(selectedId)
+        if (parentId == undefined) {
+            $('#sub-category-root').empty()
+            $('#selected-category').text(selectedCategory.name)
+        } else {
+            $(`#sub-category-${selectedId}`).empty()
+            $('#selected-category').text(categoryPath(selectedId, categories))
+        }
+        $.get(`/category?parentId=${selectedId}`).done(subCategories => {
+            
+            if (subCategories.length > 0) {
+                let cat = findInCategories(selectedId, categories)
+                cat.subCategories = subCategories
+                
+                let container
+                if (parentId == null) {
+                   container = $('#sub-category-root')
+                } else {
+                    container = $(`#sub-category-${parentId}`)
+                }
+                
+                let formGroup = initSubCategoryFormGroup(cat)
+                
+                container.append(formGroup)
+            }
+        })
+    }
+    
+    function initSubCategoryFormGroup(cat) {
+        
+        let formGroup = $(`<div class="form-group"></div>`)
+        let selectEl = $(`<select onchange="onCategorySelect(this, ${cat.id})" id="category-select-${cat.id}" class="form-control"></select>`)
+        selectEl.append($(`<option disabled selected>Select sucategory of ${cat.name}</option>`))
+        for (let subCat of cat.subCategories) {
+            selectEl.append($(`<option value="${subCat.id}">${subCat.name}</option>`))
+        }
+        formGroup.append(selectEl)
+        formGroup.append($(`<div id="sub-category-${cat.id}"></div>`))
+        
+        return formGroup
+    }
+    
+    function findInCategories(id, categories) {
+        for (let cat of categories) {
+            if (cat.id == id) {
+                return cat
+            }
+            
+            if (cat.subCategories) {
+                
+                let searchCat = findInCategories(id, cat.subCategories)
+                if (searchCat) {
+                    return searchCat
+                }
+            }
+        }
+    }
+    function categoryPath(id, categories, path = '') {
+        for (let cat of categories) {
+            if (cat.id == id) {
+                return `${path}${cat.name}`
+            }
+            
+            if (cat.subCategories) {
+                let searchPath = categoryPath(id, cat.subCategories, path)
+                if (searchPath) {
+                    return `${cat.name}>${searchPath}`
+                }
+            }
+        }
+    }
+    </script>
+}

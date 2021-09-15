@@ -1,0 +1,77 @@
+﻿@using HiliTechChallenge.Core.Models.Entities
+@using HiliTechChallenge.Core.Enums
+@using HiliTechChallenge.Core
+<div class="py-4">
+    <a asp-controller="Advertise" asp-action="GetAdd">Add</a>
+</div>
+<div class="mt-3">
+    <div class="row" style="border-bottom: 1px solid black;">
+        <div class="col">
+            Title
+        </div>
+        <div class="col">
+            Text
+        </div>
+        <div class="col">
+            Contact Info
+        </div>
+        <div class="col">
+            Status
+        </div>
+        <div class="col">
+            Actions
+        </div>
+    </div>
+    @foreach (AdsEntity ads in ViewBag.Advertises)
+    {
+        <div class="row">
+            <div class="col">
+                @ads.Title
+            </div>
+            <div class="col">
+                @ads.Text
+            </div>
+            <div class="col">
+                @ads.ContactInfo
+            </div>
+            <div class="col">
+                @Html.DropDownList("status",
+                    new List<SelectListItem> {new SelectListItem {Text = Utilities.AdsStatusStr(AdsStatus.Published), Value = ((int) AdsStatus.Published).ToString(), Selected = ads.Status == AdsStatus.Published}, new SelectListItem {Text = Utilities.AdsStatusStr(AdsStatus.Draft), Value = ((int) AdsStatus.Draft).ToString(), Selected = ads.Status == AdsStatus.Draft},}, new {onchange = $"onStatusChange({ads.Id}, this.value)"})
+            </div>
+            <div class="col d-flex">
+                <button onclick="onEditAdvertise(@ads.Id)">Edit</button>
+                <button onclick="onRemoveAdvertise(@ads.Id)">Remove</button>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts
+{
+    <script>
+    function onEditAdvertise(id) {
+        location.href = `/advertise/${id}`
+    }
+    function onRemoveAdvertise(id) {
+        $.ajax({
+            url: `/advertise/${id}`,
+            type: 'DELETE',
+            success: () => {
+                location.reload()
+            }
+        })
+    }
+    function onStatusChange(id, value) {
+        
+        $.ajax({
+            url: `/advertise/${id}/status`,
+            type: 'PUT',
+            data: JSON.stringify({status: +value}),
+            contentType: 'application/json',
+            success: () => {
+                location.reload()
+            }
+        })
+    }
+    </script>
+}

@@ -1,0 +1,29 @@
+﻿.manage-category-area {
+    padding: 16px 8px;
+}
+
+.category-box {
+    max-width: 380px;
+}
+
+.category-add {
+    padding: 2px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.sub-categories {
+    padding: 4px;
+}
+
+.sub-category {
+    margin-top: 8px;
+    padding: 8px 32px;
+    border: 1px solid black;
+}
+
+.sub-category-btn {
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
